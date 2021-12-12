@@ -1,105 +1,76 @@
-// Instantiate the class
-const ui = new UI(),
-      cocktail = new CocktailAPI();
+const proxyURL = "https://romel-acopra.herokuapp.com/";
 
-
-
-// Create the Event Listeners
-function eventListeners(){
-    // Document Ready
-    document.addEventListener('DOMContentLoaded', documentReady);
-
-    // add event listeners when form is submitted
-    const searchForm = document.querySelector('#search-form');
-    if(searchForm) {
-        searchForm.addEventListener('submit', getCocktails);
-    }
-
-    // The results div listeners
-    const resultsDiv = document.querySelector('#results');
-    if(resultsDiv) {
-        resultsDiv.addEventListener('click', resultsDelegation)
-    }
-}
-
-eventListeners();
-
-
-
-
-// Get cocktails function
-function getCocktails(e){
-    e.preventDefault();
-
-    const searchTerm = document.querySelector('#search').value;
-
-    // Check something is on the search input
-    if(searchTerm === ''){
-        // Call user interface print message
-        ui.printMessage('Please add something into the form', 'danger');
-    }else {
-        // Server response from promise
-        let serverResponse;
-
-        // Type of search (ingredients, cocktails, or name)
-        const type = document.querySelector('#type').value;
-
-        // Evaluate the type of method and then execute the query
-
-        switch(type) {
-            case 'name':
-                serverResponse = cocktail.getDrinksByName(searchTerm);
-                break;
-            case 'ingredient':
-                serverResponse = cocktail.getDrinksByIngredient(searchTerm);
-                break;
-            case 'category':
-                serverResponse = cocktail.getDrinksByCategory(searchTerm);
-                break;
-            case 'alcohol':
-                serverResponse = cocktail.getDrinksByAlcohol(searchTerm);
-                break;
+class CocktailAPI{
+    // Get recipe by name
+    async getDrinksByName(name){
+        // Search by name
+        const apiResponse = await fetch(`${proxyURL}https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${name}`)
+        
+        // Returns a json response
+        const cocktails = await apiResponse.json();
+        
+        return {
+            cocktails
         }
-
-        ui.clearResults();
-
-        // Query by the name of the drink
-        serverResponse.then(cocktails => {
-            if(cocktails.cocktails.drinks === null) {
-                // Nothing exists
-                ui.printMessage('There\'re no result, try a different term', 'danger');
-            }else {
-                if(type === 'name') {
-                    // Display with ingredients
-                    ui.displayDrinksWithIngredients(cocktails.cocktails.drinks);
-                }else {
-                    // Display without ingredients (category, alcohol, ingredient)
-                    ui.displayDrinks(cocktails.cocktails.drinks);
-                }
-            }
-        })
+        
     }
-}
-
-// Delegation for the results area
-function resultsDelegation(e) {
-    e.preventDefault();
-
-    if(e.target.classList.contains('get-recipe')) {
-        cocktail.getSingleRecipe(e.target.dataset.id)
-            .then(recipe => {
-                // Displays single recipe into a modal
-                ui.displaySingleRecipe(recipe.recipe.drinks[0]);
-            })
+    
+    // Get recipes by ingredient
+    async getDrinksByIngredient(ingredient){
+        // Search by Ingredient
+        const apiResponse = await fetch(`${proxyURL}https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient}`);
+        // Wait for response then return json
+        const cocktails = await apiResponse.json();
+        
+        return {
+            cocktails
+        }
     }
-}
 
-// Document Ready
-function documentReady() {
+    // get single recipe
+    async getSingleRecipe(id){
+        // Search by Ingredient
+        const apiResponse = await fetch(`${proxyURL}https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${id}`);
+        // Wait for response then return json
+        const recipe = await apiResponse.json();
+        
+        return {
+            recipe
+        }
+    }
 
-    // Select the search category select
-    const searchCategory = document.querySelector('.search-category');
-    if(searchCategory) {
-        ui.displayCategories();
+    // Retrieves all the categories from the API
+    async getCategories() {
+        const apiResponse = await fetch(`${proxyURL}https://www.thecocktaildb.com/api/json/v1/1/list.php?c=list`);
+        // wait for the response and return json
+        const categories = await apiResponse.json();
+
+        return {
+            categories
+        }
+    }
+
+    // Get Drinks by Category
+    async getDrinksByCategory(category) {
+        // Search by category
+        const apiResponse = await fetch(`${proxyURL}https://www.thecocktaildb.com/api/json/v1/1/filter.php?c=${category}`);
+        // Wait for response then return json
+        const cocktails = await apiResponse.json();
+        
+        return {
+            cocktails
+        }
+    }
+
+    // Get alcohol or non alcohol drinks
+    async getDrinksByAlcohol(term) {
+        // Search by category
+        const apiResponse = await fetch(`${proxyURL}https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=${term}`);
+        // Wait for response then return json
+        const cocktails = await apiResponse.json();
+        
+        return {
+            cocktails
+        }
     }
 }
